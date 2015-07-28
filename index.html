@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Coccoc widget</title>
+	<title>cwidget</title>
 	<link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 	<div class="container">
-		<div id="error-msg" class="hide"></div>
+		<div id="error-msg" class="error-msg hide"></div>
 		<table class="widget-table" id="file-table">
 			<thead>	
 				<tr>
@@ -27,11 +27,39 @@
 		</table>
 
 		<div class="btn-wrap">
-			<input type="file" id="file-input" multiple>
+			<input type="file" id="file-input" class="file-input" multiple>
 			<label for="file-input">Drag files here or click to select files</label>
 		</div>
 	</div>
+	
+	<div class="container margin-top-50">
+		<button id="btn-create">Create second widget</button>
+	</div>
+	<div class="container margin-top-50 hide" id="second-widget">
+		<div id="error-msg-1" class="hide error-msg"></div>
+		<table class="widget-table" id="file-table-1">
+			<thead>	
+				<tr>
+					<td data-sort="name" class="text-center"><a href="javascript:void(0)">Name <i class="arrow-up"></i></a></td>
+					<td data-sort="size" class="text-center"><a href="javascript:void(0)">Size <i></i></a></td>
+					<td data-sort="lastModifiedDate" class="text-center"><a href="javascript:void(0)">Date Modified <i></i></a></td>
+				</tr>
+			</thead>
+			<tbody class="no-data">
+				<tr>
+					<td colspan="3" class="text-center">No data</td>
+				</tr>
+			</tbody>
+			<tbody class="file-list-wrap hide">
+				
+			</tbody>
+		</table>
 
+		<div class="btn-wrap">
+			<input type="file" id="file-input-1" class="file-input" multiple>
+			<label for="file-input-1">Drag files here or click to select files</label>
+		</div>
+	</div>
 	<script src="js/helper.js"></script>
 	<script src="js/cwidget.js"></script>
 	<script src="js/main.js"></script>

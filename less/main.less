@@ -3,7 +3,7 @@
     max-width: 100%;
     margin-left: auto;
     margin-right: auto;
-    #error-msg {
+    .error-msg {
         color: red;
         padding: 10px;
         margin: 15px 0;
@@ -47,27 +47,32 @@
             }
         }
     }
-    #file-input {
-        visibility: hidden;
-        width: 1px;
-        height: 1px;
+    .btn-wrap{
+
+        .file-input {
+            visibility: hidden;
+            width: 1px;
+            height: 1px;
+        }
+        label {
+            color: blue;
+            cursor: pointer;
+            text-align: center;
+            display: block;
+            padding: 50px;
+            border: 1px dashed #e2e2e2;
+            &.drag-enter{
+                background: blue;
+                color: #fff;
+            }
+        }
     }
-    label[for=file-input] {
-        color: blue;
-	    cursor: pointer;
-	    text-align: center;
-	    display: block;
-	    padding: 50px;
-	    border: 1px dashed #e2e2e2;
-	    &.drag-enter{
-	    	background: blue;
-	    	color: #fff;
-	    }
-    }
-    
 }
 
 // Utilities
+.margin-top-50{
+    margin-top: 50px;
+}
 .text-center {
     text-align: center;
 }

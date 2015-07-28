@@ -1,9 +1,10 @@
 // Core functions
 var SORT_DESC = -1;
 var SORT_ASC = 1;
+var DROPPED_TO_TABLE = 'dropped-to-table';
 
 var dragIcon = document.createElement('img');
-dragIcon.src = '/img/drag.png';
+dragIcon.src = '../img/drag.png';
 dragIcon.width = 300;
 
 function CWidget(options) {
@@ -12,6 +13,8 @@ function CWidget(options) {
 
 CWidget.prototype.init = function(options) {
     var that = this;
+    this.widgetId = new Date().getTime();
+
     if (!options.fileInput) {
         throw Error('File input not found.');
     }
@@ -24,7 +27,13 @@ CWidget.prototype.init = function(options) {
     }
     this.fileInput = options.fileInput;
     this.fileTable = options.fileTable;
-    this.filesList = [];
+
+    if (!options.filesList) {
+        this.filesList = [];
+    } else {
+        this.filesList = options.filesList;
+    }
+
     this.currentSortBy = 'name';
     this.fileInput.addEventListener('change', function(event) {
         return that.onFileUploaded.apply(that, [event]);
@@ -34,37 +43,65 @@ CWidget.prototype.init = function(options) {
         return that.sortHandle.apply(that, [event]);
     }, false);
 
-    document.addEventListener("drop", function(event){
-    	return that.handleDrop.apply(that,[event]);
+    document.addEventListener("drop", function(event) {
+        return that.handleDrop.apply(that, [event]);
     }, false);
 
     document.addEventListener("dragover", function(event) {
-	    event.preventDefault();
+        event.preventDefault();
 
-	});
+    });
 
-	document.addEventListener("dragenter", function(event) {
-	    event.preventDefault();
-	    
-	});
+    document.addEventListener("dragenter", function(event) {
+        event.preventDefault();
 
-	var dropFileArea = getSiblings(that.fileInput)[0];
-	dropFileArea.addEventListener('dragover', function(event){
-		if(event.dataTransfer.types && event.dataTransfer.types.indexOf('Files') != -1){
-			addClass(dropFileArea, 'drag-enter');
-		}
-	},false);
+    });
 
-	dropFileArea.addEventListener('dragleave', function(event){
-		removeClass(dropFileArea, 'drag-enter');
-	},false);
+    var dropFileArea = getSiblings(that.fileInput)[0];
+    dropFileArea.addEventListener('dragover', function(event) {
+        if (event.dataTransfer.types && event.dataTransfer.types.indexOf('Files') != -1) {
+            addClass(dropFileArea, 'drag-enter');
+        }
+    }, false);
 
-	dropFileArea.addEventListener('drop', function(event){
-		event.preventDefault();
-		if(event.dataTransfer.types && event.dataTransfer.types.indexOf('Files') != -1){
-			return that.onFileDroped.apply(that,[event]);
-		}
-	},false);
+    dropFileArea.addEventListener('dragleave', function(event) {
+        removeClass(dropFileArea, 'drag-enter');
+    }, false);
+
+    dropFileArea.addEventListener('drop', function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.dataTransfer.types && event.dataTransfer.types.indexOf('Files') != -1) {
+            return that.onFileDroped.apply(that, [event]);
+        }
+    }, false);
+
+    this.fileTable.addEventListener('drop', function(event) {
+        event.preventDefault();
+        // event.stopPropagation();
+
+        var widgetId = event.dataTransfer.getData('widgetId');
+        var filename = event.dataTransfer.getData('filename');
+        var size = event.dataTransfer.getData('size');
+        var lastModifiedDate = event.dataTransfer.getData('lastModifiedDate');
+        var err = '';
+        if (filename && size && lastModifiedDate && that.widgetId !== widgetId) {
+            var file = {
+                name: filename,
+                size: size,
+                lastModifiedDate: lastModifiedDate
+            };
+            if (that.isFileExisted(file)) {
+                that.showError('Error: File with name ' + filename + ' is existed. <br />');
+            }else{
+                that.addFile(file);
+            }
+    
+            that.buildFileTable();
+        }
+    }, false);
+
+    this.buildFileTable();
 };
 
 
@@ -94,7 +131,7 @@ CWidget.prototype.sortHandle = function(event) {
             this.currentSortOrder = SORT_ASC;
         }
 
-        this.buildFileTable();
+        this.buildFileTable(true);
     }
     if (target.nodeName.toLowerCase() === 'i') {
         target.parentElement.click();
@@ -178,15 +215,17 @@ CWidget.prototype.sortFilesList = function(sortBy, sortOrder) {
     });
 };
 
-CWidget.prototype.buildFileTable = function() {
+CWidget.prototype.buildFileTable = function(doSort) {
     var tbody = findChildrenByClassName(this.fileTable, 'file-list-wrap')[0];
     var tbodyNoData = findChildrenByClassName(this.fileTable, 'no-data')[0];
     setHtml(tbody, '');
     if (this.filesList.length) {
-        this.sortFilesList(this.currentSortBy, this.currentSortOrder);
+        if (doSort) {
+            this.sortFilesList(this.currentSortBy, this.currentSortOrder);
+        }
         var html = '';
         this.filesList.forEach(function(item, index) {
-            html += '<tr><td>' + item.name + '</td><td class="text-center">' + formatBytes(item.size) + '</td><td class="text-center">' + item.lastModifiedDate + '</td></tr>';
+            html += '<tr><td>' + item.name + '</td><td class="text-center" data-value="' + item.size + '">' + formatBytes(item.size) + '</td><td class="text-center">' + item.lastModifiedDate + '</td></tr>';
         });
         setHtml(tbody, html);
         removeClass(tbody, 'hide');
@@ -198,7 +237,9 @@ CWidget.prototype.buildFileTable = function() {
     var that = this;
     [].forEach.call(tbody.children, function(tr) {
         tr.setAttribute('draggable', 'true'); // Enable columns to be draggable.
-        tr.addEventListener('dragstart', that.handleDragStart, false);
+        tr.addEventListener('dragstart', function(event) {
+            return that.handleDragStart.apply(that, [event])
+        }, false);
         tr.addEventListener('dragend', that.handleDragEnd, false);
     });
 };
@@ -207,7 +248,10 @@ CWidget.prototype.handleDragStart = function(event) {
     event.target.style.backgroundColor = 'red';
     event.target.style.opacity = 0.6;
     event.dataTransfer.setDragImage(dragIcon, -10, -10);
+    event.dataTransfer.setData('widgetId', this.widgetId);
     event.dataTransfer.setData('filename', event.target.children[0].innerText);
+    event.dataTransfer.setData('size', event.target.children[1].getAttribute('data-value'));
+    event.dataTransfer.setData('lastModifiedDate', event.target.children[2].innerText);
 };
 
 CWidget.prototype.handleDragEnd = function(event) {
@@ -216,42 +260,47 @@ CWidget.prototype.handleDragEnd = function(event) {
 };
 
 CWidget.prototype.handleDrop = function(event) {
-	var filename = event.dataTransfer.getData('filename');
-	var dropFileArea = getSiblings(this.fileInput)[0];
-	if(event.target === dropFileArea){
+    var widgetId = event.dataTransfer.getData('widgetId');
+    var filename = event.dataTransfer.getData('filename');
+    var allows = ['table','td','tr','body','html'];
+    if(allows.indexOf(event.target.nodeName.toLowerCase())!==-1 && widgetId == this.widgetId){
+        var dropFileArea = getSiblings(this.fileInput)[0];
+        if (event.target === dropFileArea) {
+            // DO NOTHING
+        } else {
+            this.removeFile(filename);
+        }
+    }
+    
 
-	}else{
-
-		this.removeFile(filename);
-	}
 }
 
 CWidget.prototype.removeFile = function(filename) {
-	var index = -1;
-	for (var i = 0; i < this.filesList.length; i++) {
-		if(this.filesList[i].name === filename){
-			index = i;
-			break;
-		}
-	};
-	if(index>-1){
-		this.filesList.splice(index, 1);
-	}
+    var index = -1;
+    for (var i = 0; i < this.filesList.length; i++) {
+        if (this.filesList[i].name === filename) {
+            index = i;
+            break;
+        }
+    };
+    if (index > -1) {
+        this.filesList.splice(index, 1);
+    }
 
-	var tbody = findChildrenByClassName(this.fileTable, 'file-list-wrap')[0];
-	var tbodyNoData = findChildrenByClassName(this.fileTable, 'no-data')[0];
-	var rows = tbody.children;
-	if(rows.length<=1){
-		removeClass(tbodyNoData, 'hide');
-	}else{
-		addClass(tbodyNoData, 'hide');
-	}
-	for(var i = 0; i< rows.length; i++){
-		if(rows[i].children[0].innerText === filename){
-			rows[i].remove();
-			break;
-		}
-	}
+    var tbody = findChildrenByClassName(this.fileTable, 'file-list-wrap')[0];
+    var tbodyNoData = findChildrenByClassName(this.fileTable, 'no-data')[0];
+    var rows = tbody.children;
+    if (rows.length <= 1) {
+        removeClass(tbodyNoData, 'hide');
+    } else {
+        addClass(tbodyNoData, 'hide');
+    }
+    for (var i = 0; i < rows.length; i++) {
+        if (rows[i].children[0].innerText === filename) {
+            rows[i].remove();
+            break;
+        }
+    }
 };
 
 CWidget.prototype.showError = function(err) {
@@ -263,4 +312,8 @@ CWidget.prototype.showError = function(err) {
             addClass(that.errorDiv, 'hide')
         }, 4000);
     }
+};
+
+CWidget.prototype.serialize = function() {
+    return this.filesList;
 };
