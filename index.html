@@ -3,12 +3,37 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Coccoc widget</title>
+	<link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 	<div class="container">
-		<table class="widget-table">
-			
+		<div id="error-msg" class="hide"></div>
+		<table class="widget-table" id="file-table">
+			<thead>	
+				<tr>
+					<td data-sort="name" class="text-center"><a href="javascript:void(0)">Name <i class="arrow-up"></i></a></td>
+					<td data-sort="size" class="text-center"><a href="javascript:void(0)">Size <i></i></a></td>
+					<td data-sort="lastModifiedDate" class="text-center"><a href="javascript:void(0)">Date Modified <i></i></a></td>
+				</tr>
+			</thead>
+			<tbody class="no-data">
+				<tr>
+					<td colspan="3" class="text-center">No data</td>
+				</tr>
+			</tbody>
+			<tbody class="file-list-wrap hide">
+				
+			</tbody>
 		</table>
+
+		<div class="btn-wrap">
+			<input type="file" id="file-input" multiple>
+			<label for="file-input">Drag files here or click to select files</label>
+		</div>
 	</div>
+
+	<script src="js/helper.js"></script>
+	<script src="js/cwidget.js"></script>
+	<script src="js/main.js"></script>
 </body>
 </html>

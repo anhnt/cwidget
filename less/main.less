@@ -1,8 +1,109 @@
-.container{
-	width: 1170px;
-	max-width: 100%;
-	margin-left: auto;
-	margin-right: auto;
+.container {
+    width: 1170px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    #error-msg {
+        color: red;
+        padding: 10px;
+        margin: 15px 0;
+        border: 1px solid red;
+    }
+    table {
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 20px;
+        border-spacing: 0;
+        border-collapse: collapse;
+        border: 1px solid #ddd;
+        thead {
+            th,
+            td {
+                vertical-align: bottom;
+                border: 1px solid rgb(221, 221, 221);
+                border-bottom: 2px solid #ddd;
+                font-weight: bold;
+                padding: 5px;
+                a {
+                    display: block;
+                    text-decoration: none;
+                    color: #000;
+                }
+            }
+        }
+        tbody {
+            &.no-data {
+                td {
+                    padding: 15px;
+                }
+            }
+            &.file-list-wrap {
+                td {
+                    vertical-align: middle;
+                    padding: 10px;
+                    border-bottom: 1px solid #ddd;
+                    border: 1px solid rgb(221, 221, 221);
+                }
+            }
+        }
+    }
+    #file-input {
+        visibility: hidden;
+        width: 1px;
+        height: 1px;
+    }
+    label[for=file-input] {
+        color: blue;
+	    cursor: pointer;
+	    text-align: center;
+	    display: block;
+	    padding: 50px;
+	    border: 1px dashed #e2e2e2;
+	    &.drag-enter{
+	    	background: blue;
+	    	color: #fff;
+	    }
+    }
+    
+}
 
-	
+// Utilities
+.text-center {
+    text-align: center;
+}
+
+.hide {
+    display: none;
+}
+
+.arrow-up {
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid black;
+    display: inline-block;
+}
+
+.arrow-down {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid black;
+}
+
+
+/* Prevent the text contents of draggable elements from being selectable. */
+
+[draggable] {
+    cursor: move;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* Required to make elements draggable in old WebKit */
+    -khtml-user-drag: element;
+    -webkit-user-drag: element;
 }
